@@ -5,7 +5,7 @@ from database import get_db
 import requests
 import models 
 
-router = APIRouter(prefix="/users", tags=["user"])  # noqa: E305
+router = APIRouter(prefix="", tags=["user"])  # No prefix here, it's set in main.py
 
 
 @router.get("/{user_id}")

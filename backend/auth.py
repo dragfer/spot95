@@ -64,5 +64,6 @@ async def callback(code: str, db: Session = Depends(get_db)):
     db.commit()
 
     # Simple client-side session via query param (front-end will persist)
-    front_uri = f"http://localhost:5173/dashboard?uid={user.id}"
-    return RedirectResponse(front_uri, status_code=status.HTTP_302_FOUND)
+    front_uri = f"http://127.0.0.1:5173/dashboard?uid={user.id}"
+    return RedirectResponse(front_uri, status_code=302)
+

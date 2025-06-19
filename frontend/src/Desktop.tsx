@@ -19,6 +19,11 @@ const windowTitles: Record<WindowType, string> = {
   mood: 'Analyze Mood',
   recommendations: 'Recommended Tracks',
 };
+const logout = () => {
+  localStorage.clear();
+  window.location.href = '/';
+};
+
 
 const getWindowContent = (type: WindowType, data?: any) => {
   switch (type) {

@@ -1,25 +1,21 @@
-import { useLocation } from 'react-router-dom';
-import { WindowProvider } from './windows/WindowManager';
+// src/App.tsx
 import { AuthProvider } from './contexts/AuthContext';
+import { WindowProvider } from './windows/WindowManager';
 import Desktop from './Desktop';
 import Login from './Login';
 
 function App() {
-  const location = useLocation();
+  const uid = localStorage.getItem('spotify_uid');
 
-  // Show login page if there's no UID, otherwise show the desktop
-  if (!location.search.includes('uid=')) {
-    return <Login />;
-  }
-
-  return (
+  return uid ? (
     <AuthProvider>
       <WindowProvider>
         <Desktop />
       </WindowProvider>
     </AuthProvider>
+  ) : (
+    <Login />
   );
 }
 
 export default App;
-
