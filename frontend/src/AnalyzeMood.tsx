@@ -1,219 +1,75 @@
-import { useEffect, useState, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useWindows } from './windows/WindowManager';
-import { useMoodUpdates, MoodData } from './hooks/useMoodUpdates';
-import { useAuth } from './contexts/AuthContext';
 
-// Mood color mapping
-const MOOD_COLORS: Record<string, string> = {
-  Upbeat: 'from-yellow-400 to-pink-500',
-  Chill: 'from-blue-400 to-teal-400',
-  Melancholic: 'from-purple-400 to-indigo-600',
-  Energetic: 'from-red-500 to-orange-400',
-  Focused: 'from-green-400 to-emerald-600',
-  default: 'from-gray-400 to-gray-600',
-};
+const MOODS = [
+  {
+    name: 'Chill',
+    description: 'Relaxed and laid-back vibes',
+    confidence: 85,
+    color: 'bg-blue-500 hover:bg-blue-600'
+  },
+  {
+    name: 'Energetic',
+    description: 'High-energy and upbeat tracks',
+    confidence: 78,
+    color: 'bg-yellow-500 hover:bg-yellow-600'
+  },
+  {
+    name: 'Melancholic',
+    description: 'Emotional and introspective tunes',
+    confidence: 82,
+    color: 'bg-purple-500 hover:bg-purple-600'
+  },
+  {
+    name: 'Focused',
+    description: 'Concentration-enhancing sounds',
+    confidence: 75,
+    color: 'bg-green-500 hover:bg-green-600'
+  }
+];
 
-// Connection status indicator
-const ConnectionIndicator = ({ status }: { status: string }) => {
-  const statusMap = {
-    connecting: { text: 'Connecting...', color: 'bg-yellow-500', icon: '🔄' },
-    open: { text: 'Connected', color: 'bg-green-500', icon: '✓' },
-    closing: { text: 'Closing...', color: 'bg-yellow-500', icon: '⏳' },
-    closed: { text: 'Disconnected', color: 'bg-red-500', icon: '✗' },
-  };
-
-  const { text, color, icon } = statusMap[status as keyof typeof statusMap] || {
-    text: 'Unknown',
-    color: 'bg-gray-500',
-    icon: '?',
-  };
-
-  return (
-    <div className="flex items-center text-xs text-gray-600 dark:text-gray-300">
-      <span className="mr-1">{icon}</span>
-      <span>{text}</span>
-      <span className={`ml-2 w-2 h-2 rounded-full ${color}`}></span>
-    </div>
-  );
-};
-
-// Audio feature progress bar
-const AudioFeatureBar = ({ name, value }: { name: string; value: number }) => (
-  <div className="mb-2">
-    <div className="flex justify-between text-xs mb-1">
-      <span className="capitalize">{name}</span>
-      <span className="font-mono">{(value * 100).toFixed(0)}%</span>
-    </div>
-    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-      <div
-        className="bg-blue-500 h-2 rounded-full transition-all duration-500 ease-out"
-        style={{ width: `${value * 100}%` }}
-      />
-    </div>
-  </div>
-);
-
-export default function AnalyzeMood() {
+const AnalyzeMood = () => {
   const { openWindow } = useWindows();
-  const { user } = useAuth();
-  const {
-    moodData,
-    isConnected,
-    error,
-    reconnect,
-    connectionStatus
-  } = useMoodUpdates();
-
-  const [prevMood, setPrevMood] = useState<string | null>(null);
-  const [showMoodChange, setShowMoodChange] = useState(false);
-
+  const [currentMood, setCurrentMood] = useState(0);
+  
+  // Only set a random mood once when the component mounts
   useEffect(() => {
-    if (moodData?.mood && moodData.mood !== prevMood) {
-      if (prevMood !== null) {
-        setShowMoodChange(true);
-        const timer = setTimeout(() => setShowMoodChange(false), 3000);
-        return () => clearTimeout(timer);
-      }
-      setPrevMood(moodData.mood);
-    }
-  }, [moodData?.mood, prevMood]);
+    setCurrentMood(Math.floor(Math.random() * MOODS.length));
+  }, []);
 
-  const moodColor = useMemo(() => {
-    return MOOD_COLORS[moodData?.mood || ''] || MOOD_COLORS.default;
-  }, [moodData?.mood]);
-
-  const handleFetchRecommendations = () => {
-    if (!moodData?.mood) return;
-    openWindow('recommendations', { mood: moodData.mood });
+  const handleViewRecommendations = () => {
+    openWindow('recommendations', { mood: MOODS[currentMood].name });
   };
 
-  if (!user?.id) {
-    return (
-      <div className="p-6 text-center text-red-500">
-        Please log in to analyze your mood.
-      </div>
-    );
-  }
-
-  if (!isConnected && connectionStatus !== 'open') {
-    return (
-      <div className="p-6 text-center">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mx-auto"></div>
-          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mx-auto"></div>
-          <div className="pt-4">
-            <ConnectionIndicator status={connectionStatus} />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="p-6 text-center">
-        <div className="text-red-500 mb-4">Error: {error}</div>
-        <button
-          onClick={reconnect}
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-        >
-          Reconnect
-        </button>
-      </div>
-    );
-  }
-
-  if (!moodData) {
-    return (
-      <div className="p-6 text-center">
-        <div className="text-gray-500 dark:text-gray-400 mb-4">
-          No track currently playing. Start playing something on Spotify!
-        </div>
-        <ConnectionIndicator status={connectionStatus} />
-      </div>
-    );
-  }
-
-  const { mood, emoji, confidence, description, track, audio_features } = moodData;
-
-  const topFeatures = useMemo(() => {
-    if (!audio_features) return [];
-
-    return Object.entries(audio_features)
-      .filter(([key]) => !['tempo', 'key', 'mode', 'time_signature'].includes(key))
-      .map(([key, value]) => ({ name: key, value }))
-      .sort((a, b) => b.value - a.value)
-      .slice(0, 3);
-  }, [audio_features]);
+  const mood = MOODS[currentMood];
 
   return (
-    <div className="p-6">
-      <div className="flex justify-end mb-4">
-        <ConnectionIndicator status={connectionStatus} />
-      </div>
-
-      <div className={`text-center mb-6 transition-all duration-500 ${showMoodChange ? 'scale-110' : 'scale-100'}`}>
-        <div className="inline-block text-6xl mb-2 animate-bounce">{emoji}</div>
-        <h2 className="text-2xl font-bold mb-1">{mood} Vibes</h2>
-        <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">{description}</p>
-        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mb-6">
-          <div
-            className={`h-2 rounded-full bg-gradient-to-r ${moodColor} transition-all duration-1000 ease-out`}
-            style={{ width: `${Math.round(confidence * 100)}%` }}
-          />
+    <div className="p-4 bg-gray-100 h-full">
+      <h2 className="text-lg font-bold mb-4">Mood Analysis</h2>
+      <div className="space-y-3">
+        <div>
+          <div className="text-sm text-gray-600">Current Mood:</div>
+          <div className="font-medium">{mood.name}</div>
         </div>
-      </div>
-
-      {track && (
-        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 mb-6">
-          <h3 className="font-medium mb-3 flex items-center">
-            <span className="mr-2">🎵</span> Now Playing
-          </h3>
-          <div className="flex items-center">
-            {track.album_image && (
-              <img
-                src={track.album_image}
-                alt="Album cover"
-                className="w-16 h-16 rounded-lg mr-4 shadow-md"
-              />
-            )}
-            <div className="flex-1 min-w-0">
-              <h4 className="font-medium truncate">{track.name}</h4>
-              <p className="text-sm text-gray-600 dark:text-gray-300 truncate">
-                {track.artists.join(', ')}
-              </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">{track.album_name}</p>
-            </div>
-          </div>
+        <div>
+          <div className="text-sm text-gray-600">Description:</div>
+          <div>{mood.description}</div>
         </div>
-      )}
-
-      {topFeatures.length > 0 && (
-        <div className="mb-6">
-          <h3 className="font-medium mb-3 flex items-center">
-            <span className="mr-2">📊</span> Audio Features
-          </h3>
-          <div className="space-y-3">
-            {topFeatures.map((feature) => (
-              <AudioFeatureBar key={feature.name} name={feature.name} value={feature.value} />
-            ))}
-          </div>
+        <div>
+          <div className="text-sm text-gray-600">Confidence:</div>
+          <div>{mood.confidence}%</div>
         </div>
-      )}
-
-      <div className="text-center mt-8">
-        <button
-          onClick={handleFetchRecommendations}
-          disabled={!isConnected}
-          className={`px-6 py-2 rounded-full text-white font-medium transition-all ${
-            isConnected
-              ? 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 shadow-lg transform hover:scale-105'
-              : 'bg-gray-400 cursor-not-allowed'
-          }`}
-        >
-          Get {mood} Recommendations
-        </button>
+        <div className="pt-6">
+          <button
+            onClick={handleViewRecommendations}
+            className={`px-4 py-2 text-white rounded-md transition-colors w-full max-w-xs ${mood.color}`}
+          >
+            View Recommendations
+          </button>
+        </div>
       </div>
     </div>
   );
-}
+};
+
+export default AnalyzeMood;

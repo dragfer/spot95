@@ -1,77 +1,125 @@
-# Spot' 95 – Windows 95 Style Spotify Client
+<div align="center">
+  <h1>🎵 Spot' 95</h1>
+  <h3>Your AI-Powered Music Mood Analyzer with a Nostalgic Windows 95 Twist</h3>
+  
+  [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+  [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+  [![React](https://img.shields.io/badge/React-20232A?style=flat&logo=react&logoColor=61DAFB)](https://reactjs.org/)
+  [![Spotify](https://img.shields.io/badge/Spotify-1ED760?style=flat&logo=spotify&logoColor=white)](https://developer.spotify.com/)
+  
+  <img src="frontend/public/screenshot.png" alt="Spot' 95 Screenshot" width="800" />
+</div>
 
-Spot' 95 is a nostalgic Spotify client with a Windows 95-inspired interface. It allows users to explore their listening habits, analyze their music mood, and get personalized recommendations in a retro computing environment.
+## 🎶 About Spot' 95
 
-## Project Structure
+Spot' 95 is a unique music experience that blends AI-powered mood analysis with the nostalgic charm of Windows 95. This React application brings together modern music technology with retro computing aesthetics for a truly distinctive user experience.
 
-```text
-spot95/
-├── backend/
-│   ├── main.py            # FastAPI entrypoint & routing
-│   ├── auth.py            # Spotify OAuth2 helpers
-│   ├── database.py        # SQLAlchemy + Postgres session
-│   ├── models.py          # SQLAlchemy ORM models
-│   ├── analysis_routes.py # Mood analysis and recommendations
-│   └── requirements.txt   # Python dependencies
-├── frontend/
-│   ├── package.json       # React + TypeScript + Vite
-│   └── src/
-│       ├── App.tsx        # Main application component
-│       ├── main.tsx       # Application entry point
-│       ├── components/    # Reusable UI components
-│       ├── windows/       # Window components for the desktop
-│       └── hooks/         # Custom React hooks
-└── docker-compose.yml     # Development services
-```
+## ✨ Features
 
-## Local Development
+- **Nostalgic Windows 95 Interface**
+  - Fully functional desktop environment
+  - Draggable, resizable windows
+  - Classic UI elements and styling
+  - Working Start menu and taskbar
 
-1. **Install Dependencies**:
+- **Music Analysis**
+  - Mood-based music recommendations using a faux AI algorithm
+  - Real-time Spotify integration
+  - Multiple mood categories (Chill, Energetic, Melancholic, Focused)
+  - Direct links to Spotify for immediate listening
+  > **Note:** This project currently uses a faux AI algorithm for demonstration purposes, with predefined mood-based recommendations. Future versions may integrate actual machine learning for mood analysis.
 
-```bash
-# Backend (Python 3.9+)
-cd backend
-pip install -r requirements.txt
+- **Customization**
+  - Changeable wallpapers
+  - Responsive design
+  - Interactive UI elements with authentic Windows 95 feel
 
-# Frontend (Node.js 16+)
-cd ../frontend
-npm install
-```
+## 🛠️ Tech Stack
 
-2. **Start the Development Servers**:
+- **Frontend**: React, TypeScript, Tailwind CSS
+- **UI/UX**: Framer Motion, React Icons, React Draggable
+- **AI/ML**: Python (for mood analysis)
+- **Music**: Spotify Web API
+- **Styling**: Custom Windows 95 theme with pixel-perfect components
 
-```bash
-# In one terminal (backend)
-cd backend
-uvicorn main:app --reload
+## 🚀 Getting Started
 
-# In another terminal (frontend)
-cd frontend
-npm run dev
-```
+### Prerequisites
 
-3. **Run the full stack** (hot-reload everywhere):
+- Node.js 16+ and npm
+- Python 3.9+
+- Spotify Developer Account (for API access)
 
-```bash
-windsurf dev
-```
+### Installation
 
-The CLI will:
-- launch FastAPI on `http://localhost:8000`
-- launch React dev server on `http://localhost:5173`
-- proxy `/api/*` calls from the front end to the backend
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/dragfer/spot95.git
+   cd spot95
+   ```
 
-## Environment Variables
-Create a `.env` file at the repo root:
+2. **Set up the backend**
+   ```bash
+   cd backend
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   pip install -r requirements.txt
+   ```
 
-```env
-SPOTIFY_CLIENT_ID=your_id
-SPOTIFY_CLIENT_SECRET=your_secret
-SPOTIFY_REDIRECT_URI=http://localhost:8000/api/auth/callback
-DATABASE_URL=postgresql+psycopg2://postgres:postgres@db:5432/spot95
-REDIS_URL=redis://cache:6379/0
-OPENAI_API_KEY=your_key_if_using
-```
+3. **Set up the frontend**
+   ```bash
+   cd ../frontend
+   npm install
+   ```
 
-## Production
-`deploy.yml` builds multi-arch Docker images and ships to AWS ECS. Terraform/IaC samples are included under `infra/` (add your own secrets in GitHub Actions).
+4. **Configure environment variables**
+   Create a `.env` file in the backend directory with your Spotify API credentials:
+   ```env
+   SPOTIFY_CLIENT_ID=your_client_id
+   SPOTIFY_CLIENT_SECRET=your_client_secret
+   SPOTIFY_REDIRECT_URI=http://localhost:3000/callback
+   ```
+
+## 🖥️ Running the Application
+
+1. **Start the backend server**
+   ```bash
+   cd backend
+   uvicorn main:app --reload
+   ```
+
+2. **Start the frontend development server**
+   ```bash
+   cd frontend
+   npm run dev
+   ```
+
+3. Open your browser and navigate to `http://localhost:5173`
+
+## 🎨 Customization
+
+### Changing Wallpapers
+Click the wallpaper icon in the taskbar to cycle through different retro wallpapers that match the Windows 95 aesthetic.
+
+### Mood Analysis
+Use the mood analyzer to get personalized music recommendations based on your current vibe.
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- Windows 95 for the nostalgic UI inspiration
+- Spotify for their amazing API
+- All the open-source libraries that made this project possible

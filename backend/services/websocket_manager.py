@@ -23,16 +23,20 @@ class ConnectionManager:
 
     async def connect(self, user_id: str, websocket: WebSocket) -> None:
         """Register a new WebSocket connection."""
+        logger.debug(f"Attempting to connect user {user_id}")
         # Close any existing connection for this user
         if user_id in self.active_connections:
             old_ws = self.active_connections[user_id]
+            logger.debug(f"Closing existing connection for user {user_id}")
             try:
                 await old_ws.close()
+                logger.debug(f"Successfully closed old connection for {user_id}")
             except Exception as e:
                 logger.warning(f"Error closing old connection for {user_id}: {e}")
         
         self.active_connections[user_id] = websocket
-        logger.info(f"New connection for user {user_id}")
+        logger.info(f"New connection registered for user {user_id}")
+        logger.debug(f"Current active connections: {len(self.active_connections)}")
 
     async def disconnect(self, user_id: str) -> None:
         """Remove a WebSocket connection."""
@@ -51,7 +55,9 @@ class ConnectionManager:
             
         websocket = self.active_connections[user_id]
         try:
+            logger.debug(f"Sending message to user {user_id}: {message}")
             await websocket.send_json(message)
+            logger.debug(f"Successfully sent message to user {user_id}")
             return True
         except Exception as e:
             logger.error(f"Error sending message to {user_id}: {e}")

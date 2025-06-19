@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        #output {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            min-height: 100px;
+            max-height: 300px;
+            overflow-y: auto;
+            background-color: #f9f9f9;
+        }
+        .status {
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        .connected { background-color: #4CAF50; color: white; }
+        .disconnected { background-color: #f44336; color: white; }
+        .connecting { background-color: #ff9800; color: white; }
+    </style>
+</head>
+<body>
+    <h1>WebSocket Test</h1>
+    <div>
+        <button id="connectBtn">Connect</button>
+        <button id="disconnectBtn" disabled>Disconnect</button>
+        <button id="sendPing">Send Ping</button>
+    </div>
+    <div style="margin-top: 10px;">
+        Status: <span id="status" class="status disconnected">Disconnected</span>
+    </div>
+    <h3>Connection Log:</h3>
+    <div id="output"></div>
+
+    <script>
+        const output = document.getElementById('output');
+        const statusEl = document.getElementById('status');
+        const connectBtn = document.getElementById('connectBtn');
+        const disconnectBtn = document.getElementById('disconnectBtn');
+        const sendPingBtn = document.getElementById('sendPing');
+        
+        let socket = null;
+        const userId = 'test-user-' + Math.random().toString(36).substr(2, 9);
+        // Note: The /ws prefix is already included in the router prefix
+        const wsUrl = `ws://localhost:8000/ws/${userId}`;
+        
+        function log(message) {
+            const entry = document.createElement('div');
+            entry.textContent = `[${new Date().toISOString()}] ${message}`;
+            output.appendChild(entry);
+            output.scrollTop = output.scrollHeight;
+        }
+        
+        function setStatus(status) {
+            statusEl.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+            statusEl.className = 'status ' + status.toLowerCase();
+            
+            // Update button states
+            connectBtn.disabled = status === 'connecting' || status === 'connected';
+            disconnectBtn.disabled = status === 'disconnected' || status === 'connecting';
+            sendPingBtn.disabled = status !== 'connected';
+        }
+        
+        function connect() {
+            if (socket && (socket.readyState === WebSocket.CONNECTING || socket.readyState === WebSocket.OPEN)) {
+                log('WebSocket is already connected or connecting');
+                return;
+            }
+            
+            log(`Connecting to ${wsUrl}...`);
+            setStatus('connecting');
+            
+            socket = new WebSocket(wsUrl);
+            
+            socket.onopen = () => {
+                log('WebSocket connected successfully');
+                setStatus('connected');
+            };
+            
+            socket.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    log(`Received: ${JSON.stringify(data, null, 2)}`);
+                } catch (e) {
+                    log(`Received: ${event.data}`);
+                }
+            };
+            
+            socket.onerror = (error) => {
+                log(`WebSocket error: ${error}`);
+                setStatus('disconnected');
+            };
+            
+            socket.onclose = (event) => {
+                log(`WebSocket disconnected. Code: ${event.code}, Reason: ${event.reason || 'No reason provided'}`);
+                setStatus('disconnected');
+                socket = null;
+            };
+        }
+        
+        function disconnect() {
+            if (socket) {
+                log('Closing WebSocket connection...');
+                socket.close();
+            } else {
+                log('No active WebSocket connection to close');
+            }
+        }
+        
+        function sendPing() {
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                const pingData = JSON.stringify({ type: 'ping', timestamp: Date.now() });
+                socket.send(pingData);
+                log(`Sent: ${pingData}`);
+            } else {
+                log('Cannot send ping: WebSocket is not connected');
+            }
+        }
+        
+        // Event listeners
+        connectBtn.addEventListener('click', connect);
+        disconnectBtn.addEventListener('click', disconnect);
+        sendPing.addEventListener('click', sendPing);
+        
+        // Initial status
+        setStatus('disconnected');
+        log('Ready. Click "Connect" to start.');
+    </script>
+</body>
+</html>

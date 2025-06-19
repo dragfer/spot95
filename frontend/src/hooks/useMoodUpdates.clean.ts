@@ -95,7 +95,7 @@ const useMoodUpdates = () => {
       console.error('Failed to create WebSocket:', err);
       setError('Failed to connect to server');
     }
-  }, []);
+  }, [user?.id]);
 
   // Connect on mount and when user changes
   useEffect(() => {
@@ -126,16 +126,12 @@ const useMoodUpdates = () => {
     connectWebSocket();
   }, [connectWebSocket]);
 
-  // Map isConnected to connectionStatus for backward compatibility
-  const connectionStatus = isConnected ? 'open' : 'closed';
-
   return {
     moodData,
     isConnected,
-    connectionStatus, // Add this line to match the expected interface
     error,
     reconnect,
   };
 };
 
-export { useMoodUpdates };
+export default useMoodUpdates;

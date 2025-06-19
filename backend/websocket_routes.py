@@ -22,10 +22,32 @@ router = APIRouter()
 # Track active user sessions
 active_sessions: Dict[str, Dict[str, Any]] = {}
 
-@router.websocket("/ws/{user_id}")
+@router.websocket("/{user_id}")
 async def websocket_endpoint(websocket: WebSocket, user_id: str):
     """WebSocket endpoint for real-time mood updates."""
-    await manager.connect(user_id, websocket)
+    logger.info(f"Incoming WebSocket connection for user {user_id}")
+    
+    try:
+        logger.debug("Accepting WebSocket connection...")
+        await websocket.accept()
+        logger.debug("WebSocket connection accepted")
+        
+        logger.debug("Connecting to WebSocket manager...")
+        await manager.connect(user_id, websocket)
+        logger.info(f"Successfully connected user {user_id}")
+        
+        # Send welcome message
+        welcome_msg = {
+            "type": "connection_established",
+            "message": "Connected to Spot' 95 real-time service",
+            "timestamp": int(time.time() * 1000)
+        }
+        logger.debug(f"Sending welcome message: {welcome_msg}")
+        await manager.send_personal_message(welcome_msg, user_id)
+    except Exception as e:
+        logger.error(f"Error during WebSocket setup for {user_id}: {e}")
+        await websocket.close(code=1011, reason=f"Server error: {str(e)}")
+        return
     
     try:
         # Send initial connection confirmation
@@ -41,12 +63,16 @@ async def websocket_endpoint(websocket: WebSocket, user_id: str):
             # but we need to handle disconnection
             data = await websocket.receive_text()
             
+            logger.debug(f"Received message from {user_id}: {data}")
+            
             # Client can send ping to check connection
             if data.strip().lower() == 'ping':
-                await manager.send_personal_message({
+                pong_msg = {
                     "type": "pong",
                     "timestamp": int(time.time() * 1000)
-                }, user_id)
+                }
+                logger.debug(f"Sending pong to {user_id}: {pong_msg}")
+                await manager.send_personal_message(pong_msg, user_id)
                 
     except WebSocketDisconnect:
         logger.info(f"WebSocket disconnected for user {user_id}")
