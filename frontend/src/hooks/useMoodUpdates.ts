@@ -52,6 +52,7 @@ interface UseMoodUpdatesReturn {
 
 export const useMoodUpdates = (): UseMoodUpdatesReturn => {
   const { user } = useAuth();
+  const uid = user?.id || localStorage.getItem('spot95_uid');
   const [moodData, setMoodData] = useState<MoodData | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'open' | 'closing' | 'closed'>('closed');
   const [error, setError] = useState<string | null>(null);

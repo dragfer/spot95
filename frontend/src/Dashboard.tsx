@@ -13,9 +13,21 @@ export default function Dashboard() {
     if (uid) {
       localStorage.setItem('spotify_uid', uid);
       console.log('[Dashboard] UID stored:', uid);
-      navigate('/dashboard', { replace: true });
+      // Force a page reload to update the App's auth state
+      window.location.href = '/dashboard';
+    } else if (!localStorage.getItem('spotify_uid')) {
+      // If no UID in URL and not logged in, redirect to login
+      window.location.href = '/';
+      return;
     }
-  }, [searchParams, navigate]);
+  }, [searchParams]);
+
+  useEffect(() => {
+    // After authentication, open the profile window by default
+    if (localStorage.getItem('spotify_uid')) {
+      openWindow('profile');
+    }
+  }, [openWindow]);
 
   const buttons: { label: string; type: WindowType }[] = [
     { label: 'Profile', type: 'profile' },
